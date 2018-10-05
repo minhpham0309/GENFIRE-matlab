@@ -54,7 +54,7 @@ GENFIRE.oversamplingRatio = 3;              % ratio = 4
 GENFIRE.griddingMethod = 1;                 % griddingMethod=2 for DFT
 GENFIRE.allowMultipleGridMatches = 1;
 GENFIRE.constraintEnforcementMode = 3; 
-GENFIRE.interpolationCutoffDistance =.1; 
+GENFIRE.interpolationCutoffDistance =.5; 
 GENFIRE.constraintPositivity = 1;
 GENFIRE.constraintSupport = 1;
 GENFIRE.ComputeFourierShellCorrelation = 0; 
@@ -102,7 +102,7 @@ if GENFIRE.ComputeFourierShellCorrelation
 end
     
 %run reconstruction
-
+%GENFIRE = reconstruct(GENFIRE);
 GENFIRE = reconstruct_dr(GENFIRE);
 final_rec = GENFIRE.reconstruction;
 

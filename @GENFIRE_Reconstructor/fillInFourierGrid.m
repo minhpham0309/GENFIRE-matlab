@@ -6,7 +6,7 @@
 %%  interpolationCutoffDistance - radius of sphere in which to include measured
 %%  oversamplingRatio - oversampling ratio for the projections in each direction
 %%      values when filling in grid. All points within this sphere will be weighted
-%%      linearly by their inverse distance. 
+%%      linearly by their inverse distance.
 %%  interpolationCutoffDistance - radius of interpolation kernel
 %%  doCTFcorrection - flag to correct for Contrast Transfer Function (CTF) in projections, requires CTFparameters
 %%  CTFparameters - structure containing defocus values and defocus angle for each projection
@@ -38,7 +38,7 @@ oversamplingRatio = obj.oversamplingRatio;
 
 %create empty CTF parameters if not doing CTF correction
 if ~doCTFcorrection
-   CTFparameters = []; 
+    CTFparameters = [];
 end
 if doCTFcorrection && nargin < 6
     error('GENFIRE: doCTFcorrection is turned on, but CTFparameters was not provided.\n\n')
@@ -53,7 +53,7 @@ halfWindowSize = particleWindowSize/2;
 if mod(particleWindowSize,2)==0
     kMeasured = zeros(particleWindowSize*oversamplingRatio,particleWindowSize*oversamplingRatio,size(projections,3));
 else
-    kMeasured = zeros(1 + (particleWindowSize-1)*oversamplingRatio,1 + (particleWindowSize-1)*oversamplingRatio,size(projections,3));  
+    kMeasured = zeros(1 + (particleWindowSize-1)*oversamplingRatio,1 + (particleWindowSize-1)*oversamplingRatio,size(projections,3));
 end
 
 tic %start clock
@@ -77,54 +77,54 @@ if doCTFcorrection
         CTFThrowOutThreshhold = 0.05;%default value
     end
     if isfield(CTFparameters,'ignore_first_peak')
-       ignore_first_peak =  CTFparameters(1).ignore_first_peak;
+        ignore_first_peak =  CTFparameters(1).ignore_first_peak;
     else
         ignore_first_peak = 0;
-    end  
-
-for projNum = 1:size(projections,3);
-    %get Contrast Transfer Function (CTF)
-    pjK = projections(:,:,projNum);
-    centralPixelK = size(pjK,2)/2+1;
-    
-    %crop out the appropriate window
-    pjK = pjK(centralPixelK-halfWindowSize:centralPixelK+halfWindowSize-1,centralPixelK-halfWindowSize:centralPixelK+halfWindowSize-1);%window projection
-
-    pjK = my_fft(padarray(pjK,[padding padding 0]));%pad and take FFT
-    
-    %get the CTF
-    [CTF, gamma] = ctf_correction(pjK,CTFparameters(projNum).defocusU,CTFparameters(projNum).defocusV,CTFparameters(projNum).defocusAngle,ignore_first_peak);%get CTF
-    if CTFparameters(projNum).phaseFlip %this should always be on unless your projections have already been CTF corrected elsewhere
-        pjK(CTF<0) = -1*pjK(CTF<0);%phase flip
     end
     
-    if CTFparameters(projNum).correctAmplitudesWithWienerFilter
-    	
-    	%get dimensions of the CTF array
-        dim1_2 = size(CTF,1);
-        nc2 = single(round((dim1_2+1)/2));%center pixel
-        n22 = single(nc2-1);%radius of array
-
-		%reciprocal indices
-        [ky2, kx2] = meshgrid(-n22:n22-1,-n22:n22-1);ky2 = single(ky2);kx2 = single(kx2);
-        Q2 = sqrt(ky2.^2+kx2.^2)./n22;
+    for projNum = 1:size(projections,3);
+        %get Contrast Transfer Function (CTF)
+        pjK = projections(:,:,projNum);
+        centralPixelK = size(pjK,2)/2+1;
         
-        SSNR = ones(size(Q2));%initialize SSNR map
-        %interpolate the SSNR array from the provided values of the SSNR per frequency shell
-        SSNR(:) = interp1(linspace(0,1+1e-10,size(CTFparameters(projNum).SSNR,2)),CTFparameters(projNum).SSNR,Q2(:),'linear');%make weighting map from average FRC
-        SSNR(isnan(SSNR)) = 0;
-        wienerFilter = abs(CTF)./(abs(CTF).^2+(1./SSNR));%construct Wiener filter for CTF amplitude correction
-        pjK = pjK.*wienerFilter; 
-    elseif CTFparameters(projNum).multiplyByCTFabs%multiplying by CTF boosts SNR and is most useful for datasets that are extremely noisy
-        pjK = pjK.*abs(CTF); 
+        %crop out the appropriate window
+        pjK = pjK(centralPixelK-halfWindowSize:centralPixelK+halfWindowSize-1,centralPixelK-halfWindowSize:centralPixelK+halfWindowSize-1);%window projection
+        
+        pjK = my_fft(padarray(pjK,[padding padding 0]));%pad and take FFT
+        
+        %get the CTF
+        [CTF, gamma] = ctf_correction(pjK,CTFparameters(projNum).defocusU,CTFparameters(projNum).defocusV,CTFparameters(projNum).defocusAngle,ignore_first_peak);%get CTF
+        if CTFparameters(projNum).phaseFlip %this should always be on unless your projections have already been CTF corrected elsewhere
+            pjK(CTF<0) = -1*pjK(CTF<0);%phase flip
+        end
+        
+        if CTFparameters(projNum).correctAmplitudesWithWienerFilter
+            
+            %get dimensions of the CTF array
+            dim1_2 = size(CTF,1);
+            nc2 = single(round((dim1_2+1)/2));%center pixel
+            n22 = single(nc2-1);%radius of array
+            
+            %reciprocal indices
+            [ky2, kx2] = meshgrid(-n22:n22-1,-n22:n22-1);ky2 = single(ky2);kx2 = single(kx2);
+            Q2 = sqrt(ky2.^2+kx2.^2)./n22;
+            
+            SSNR = ones(size(Q2));%initialize SSNR map
+            %interpolate the SSNR array from the provided values of the SSNR per frequency shell
+            SSNR(:) = interp1(linspace(0,1+1e-10,size(CTFparameters(projNum).SSNR,2)),CTFparameters(projNum).SSNR,Q2(:),'linear');%make weighting map from average FRC
+            SSNR(isnan(SSNR)) = 0;
+            wienerFilter = abs(CTF)./(abs(CTF).^2+(1./SSNR));%construct Wiener filter for CTF amplitude correction
+            pjK = pjK.*wienerFilter;
+        elseif CTFparameters(projNum).multiplyByCTFabs%multiplying by CTF boosts SNR and is most useful for datasets that are extremely noisy
+            pjK = pjK.*abs(CTF);
+        end
+        
+        if CTFThrowOutThreshhold>0 %recalculate CTF at new array size for throwing out values that were near CTF 0 crossover
+            pjK(abs(CTF)<CTFThrowOutThreshhold & (gamma>(pi/2))) = -999;%flag values where CTF was near 0 to ignore for gridding, but ignore out to first peak
+        end
+        
+        kMeasured(:,:,projNum) = pjK;
     end
-    
-    if CTFThrowOutThreshhold>0 %recalculate CTF at new array size for throwing out values that were near CTF 0 crossover
-        pjK(abs(CTF)<CTFThrowOutThreshhold & (gamma>(pi/2))) = -999;%flag values where CTF was near 0 to ignore for gridding, but ignore out to first peak
-    end
-    
-    kMeasured(:,:,projNum) = pjK;   
-end
     
     if CTFThrowOutThreshhold > 0     %flag values below the where the CTF was smaller than the CTFThrowOutThreshhold
         for projNum = 1:size(projections,3);
@@ -133,13 +133,13 @@ end
             CTF = ctf_correction(pjK,CTFparameters(projNum).defocusU,CTFparameters(projNum).defocusV,CTFparameters(projNum).defocusAngle,ignore_first_peak);%get CTF
             pjK(abs(CTF)<CTFThrowOutThreshhold) = -999;%flag values where CTF was near 0 to ignore for gridding
             kMeasured(:,:,projNum) = pjK;
-        end  
+        end
     end
 else
     %otherwise, add the projection to the stack of data with no further corrections
     for projNum = 1:size(projections,3);
         kMeasured(:,:,projNum) = my_fft(My_paddzero(projections(:,:,projNum),[size(kMeasured,1) size(kMeasured,2)]));
-    end  
+    end
 end
 
 clear projections
@@ -151,24 +151,24 @@ measuredZ = zeros(1,size(kMeasured,2)*size(kMeasured,1),size(kMeasured,3),'singl
 
 
 for projNum = 1:size(kMeasured,3);
-phi = angles(projNum,1);
-theta = angles(projNum,2);
-psi = angles(projNum,3);
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%  GENFIRE/RELION/XMIPP/FREALIGN/EMAN Euler angle convention:
-% % 
-R = [ cosd(psi)*cosd(theta)*cosd(phi)-sind(psi)*sind(phi) ,cosd(psi)*cosd(theta)*sind(phi)+sind(psi)*cosd(phi)   ,    -cosd(psi)*sind(theta);
-      -sind(psi)*cosd(theta)*cosd(phi)-cosd(psi)*sind(phi), -sind(psi)*cosd(theta)*sind(phi)+cosd(psi)*cosd(phi) ,   sind(psi)*sind(theta)  ;
-      sind(theta)*cosd(phi)                               , sind(theta)*sind(phi)                                ,              cosd(theta)];
-
-rotkCoords = R'*[kx;ky;kz];%rotate coordinates
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-measuredX(:,:,projNum) = rotkCoords(1,:);%rotated X
-measuredY(:,:,projNum) = rotkCoords(2,:);%rotated Y
-measuredZ(:,:,projNum) = rotkCoords(3,:);%rotated Z
+    phi = angles(projNum,1);
+    theta = angles(projNum,2);
+    psi = angles(projNum,3);
+    
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%  GENFIRE/RELION/XMIPP/FREALIGN/EMAN Euler angle convention:
+    % %
+    R = [ cosd(psi)*cosd(theta)*cosd(phi)-sind(psi)*sind(phi) ,cosd(psi)*cosd(theta)*sind(phi)+sind(psi)*cosd(phi)   ,    -cosd(psi)*sind(theta);
+        -sind(psi)*cosd(theta)*cosd(phi)-cosd(psi)*sind(phi), -sind(psi)*cosd(theta)*sind(phi)+cosd(psi)*cosd(phi) ,   sind(psi)*sind(theta)  ;
+        sind(theta)*cosd(phi)                               , sind(theta)*sind(phi)                                ,              cosd(theta)];
+    
+    rotkCoords = R'*[kx;ky;kz];%rotate coordinates
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    measuredX(:,:,projNum) = rotkCoords(1,:);%rotated X
+    measuredY(:,:,projNum) = rotkCoords(2,:);%rotated Y
+    measuredZ(:,:,projNum) = rotkCoords(3,:);%rotated Z
 end
 
 %reshape to simplify
@@ -194,15 +194,15 @@ else
 end
 %The nearest grid point to a measured value can be found by rounding, but
 %there can be more than one grid point within the cutoff sphere, so must
-%search locally for other possibilities. However in practice I have found 
+%search locally for other possibilities. However in practice I have found
 %this search can slow the program down greatly, without significant change
 %in final result. Even searching 1 voxel in either direction increases the
 %number of calculations by 3^3 = 27; For this reason I have set shiftMax = 0 and
 %just assign values to their closest voxel.
 
-for Yshift = -shiftMax:shiftMax 
-   for Xshift = -shiftMax:shiftMax
-       for Zshift = -shiftMax:shiftMax
+for Yshift = -shiftMax:shiftMax
+    for Xshift = -shiftMax:shiftMax
+        for Zshift = -shiftMax:shiftMax
             tmpX = (round(measuredX)+Xshift); % apply shift
             tmpY = (round(measuredY)+Yshift);
             tmpZ = (round(measuredZ)+Zshift);
@@ -215,24 +215,24 @@ for Yshift = -shiftMax:shiftMax
             masterInd = [masterInd sub2ind([dim1 dim1 dim1],tmpX(goodInd),tmpY(goodInd),tmpZ(goodInd))]; %append values to lists
             masterVals = [masterVals tmpVals(goodInd)];
             masterDistances = [masterDistances distances(goodInd)];
-
-       end
-   end
+            
+        end
+    end
 end
-   
+
 clear measuredX
 clear measuredY
 clear measuredZ
 clear confidenceWeights
 
-% Now that we have a list of the complex values to grid, their coordinates, 
+% Now that we have a list of the complex values to grid, their coordinates,
 % and their distances from the nearest voxel, we want to reorganize the
 % data so that all values matched to a given voxel are in the same place,
 % so that the weighted sum can be computed. The number of values matched to
 % each voxel can vary, and although one could use cell arrays for this
 % purpose, they are quite slow. Instead, one can simply sort the indices,
 % and then find the unique values by looking at the difference in
-% consecutive elements. 
+% consecutive elements.
 
 masterDistances = masterDistances + 1e-5;
 masterDistances(masterDistances>0) = 1 ./ masterDistances(masterDistances>0);
