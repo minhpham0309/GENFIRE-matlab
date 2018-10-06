@@ -39,7 +39,6 @@ constraintIndicators = zeros(size(Q)); %% first reconstruction uses resolution e
 %%initially and the maximum enforced resolution increases. This is followed by resolution where suppression, which is the same process run backwards, so at the final iteration
 %%only the lowest resolution is being enforced again.
 constraintIndicators(obj.measuredK~=0 & obj.measuredK_mask) = 1-Q(obj.measuredK~=0 & obj.measuredK_mask);%make lower resolution have higher confidence. Higher confidence means enforced earlier in the reconstruction and for longer overall than low confidence
-constraintIndicators = boolean(constraintIndicators);
 
 %remove datapoints for Rfree calculation
 
@@ -109,9 +108,7 @@ currentCutoffNum = 1;
 paddedSupport = ifftshift(paddedSupport);
 paddedSupport = boolean(paddedSupport);
 initialObject = ifftshift(initialObject);
-
 initialObject = single(initialObject);
-clear Q
 
 u = initialObject;
 for iterationNum = 1:numIterations
