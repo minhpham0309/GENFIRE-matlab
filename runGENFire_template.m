@@ -4,7 +4,7 @@ addpath('functions\')
 
 pj_filename              = 'data\vesicle_projections.mat';
 angle_filename           = 'data\vesicle_angles.mat';
-results_filename         = 'data\vesicle_result.mat';
+results_filename         = 'data\result.mat';
 doGPU = 0;
 
 %%
@@ -12,17 +12,17 @@ doGPU = 0;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%                                                                         %%
-%%                        Welcome to GENFIRE!                              %%
-%%           GENeralized Fourier Iterative REconstruction                  %%
-%%                                                                         %%
+%%%                                                                         %%
+%%%                        Welcome to GENFIRE!                              %%
+%%%           GENeralized Fourier Iterative REconstruction                  %%
+%%%                                                                         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% Author: Alan (AJ) Pryor, Jr.
-%% email:  apryor6@gmail.com
-%% Jianwei (John) Miao Coherent Imaging Group
-%% University of California, Los Angeles
-%% Copyright (c) 2015. All Rights Reserved.
+%%% Author: Alan (AJ) Pryor, Jr.
+%%% email:  apryor6@gmail.com
+%%% Jianwei (John) Miao Coherent Imaging Group
+%%% University of California, Los Angeles
+%%% Copyright (c) 2015. All Rights Reserved.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -54,7 +54,7 @@ GENFIRE.oversamplingRatio = 3;              % ratio = 4
 GENFIRE.griddingMethod = 1;                 % griddingMethod=2 for DFT
 GENFIRE.allowMultipleGridMatches = 1;
 GENFIRE.constraintEnforcementMode = 3; 
-GENFIRE.interpolationCutoffDistance =.5; 
+GENFIRE.interpolationCutoffDistance =.5;    % interpolation Cut-off distance
 GENFIRE.constraintPositivity = 1;
 GENFIRE.constraintSupport = 1;
 GENFIRE.ComputeFourierShellCorrelation = 0; 
@@ -107,9 +107,9 @@ GENFIRE = reconstruct_dr(GENFIRE);
 final_rec = GENFIRE.reconstruction;
 
 %%
-figure(1);img(permute(final_rec,[2,3,1]));
-figure(2);img(permute(final_rec,[1,3,2]));
-figure(3);img(final_rec);
-
-
+figure;img(permute(final_rec,[2,3,1]));
+figure;img(permute(final_rec,[1,3,2]));
+figure;img(final_rec);
+%%
+save('Ni_DR.mat','final_rec');
 
