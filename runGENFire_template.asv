@@ -55,6 +55,8 @@ GENFIRE.griddingMethod = 1;                 % griddingMethod=2 for DFT
 GENFIRE.allowMultipleGridMatches = 1;
 GENFIRE.constraintEnforcementMode = 3; 
 GENFIRE.interpolationCutoffDistance =.5;    % interpolation Cut-off distance
+GENFIRE.dt_type = 1;                        % dt
+GENFIRE.ds = 0.75;                             % ds
 GENFIRE.constraintPositivity = 1;
 GENFIRE.constraintSupport = 1;
 GENFIRE.ComputeFourierShellCorrelation = 0; 
@@ -65,7 +67,7 @@ GENFIRE.doCTFcorrection = 0;
 GENFIRE.CTFThrowOutThreshhold = 0;
 GENFIRE.calculate_Rfree = 0;
 GENFIRE.DFT_doGPU = doGPU;
-GENFIRE.dt_type = 1;
+
 
 %GENFIRE.particleWindowSize = [];
 %GENFIRE.phaseErrorSigmaTolerance = [];

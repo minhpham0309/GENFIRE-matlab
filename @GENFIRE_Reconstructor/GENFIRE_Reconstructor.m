@@ -79,6 +79,7 @@ classdef GENFIRE_Reconstructor
     
     % dt parameters for new dr method
     dt_type
+    ds
   end
    
   methods

@@ -27,6 +27,7 @@
 
 function obj = reconstruct_dr(obj)
 dt_type = obj.dt_type;
+ds =    obj.ds;
 
 % paddedSupport = My_paddzero(obj.Support, [obj.n1_oversampled obj.n2_oversampled obj.n1_oversampled]);
 paddedSupport = My_paddzero(obj.Support, size(obj.measuredK));
@@ -159,14 +160,14 @@ for iterationNum = 1:numIterations
     k(constraintInd_complex_shifted) = dt*k(constraintInd_complex_shifted) + (1-dt)*obj.measuredK(constraintInd_complex);
     u_K = ifftn(k);
     %u_K = real(ifftn(k));
-    initialObject = 1.5*u_K - .5*u;
+    initialObject = (1+ds)*u_K - ds*u;
     
     %     initialObject = real(ifftn(k));%obtain next object with IFFT
     initialObject = real(initialObject);%obtain next object with IFFT
     initialObject(initialObject<0)=0;
     initialObject = initialObject.*paddedSupport;
     
-    u = initialObject + .5*(u - u_K);
+    u = initialObject + ds*(u - u_K);
 end
 
 reconstructionTime = toc;
