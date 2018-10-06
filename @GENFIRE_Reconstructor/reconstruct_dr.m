@@ -108,6 +108,7 @@ currentCutoffNum = 1;
 paddedSupport = ifftshift(paddedSupport);
 paddedSupport = boolean(paddedSupport);
 initialObject = ifftshift(initialObject);
+initialObject = single(initialObject);
 
 u = initialObject;
 for iterationNum = 1:numIterations
@@ -154,7 +155,7 @@ for iterationNum = 1:numIterations
         obj.reconstruction = initialObject;
     end
     
-    fprintf('GENFIRE: Iteration %d: Error = %d\n',iterationNum, obj.errK(iterationNum));
+    fprintf('Iteration %d. Error = %d\n',iterationNum, obj.errK(iterationNum));
     %enforce Fourier constraint
     %k(constraintInd_complex_shifted) = obj.measuredK(constraintInd_complex);
     k(constraintInd_complex_shifted) = dt*k(constraintInd_complex_shifted) + (1-dt)*obj.measuredK(constraintInd_complex);

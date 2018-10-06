@@ -51,7 +51,7 @@ GENFIRE.filename_Results = results_filename;
 GENFIRE.numIterations = 100; 
 GENFIRE.pixelSize = .5; 
 GENFIRE.oversamplingRatio = 3;              % ratio = 4
-GENFIRE.griddingMethod = 2;                 % griddingMethod=2 for DFT
+GENFIRE.griddingMethod = 1;                 % griddingMethod=2 for DFT
 GENFIRE.allowMultipleGridMatches = 1;
 GENFIRE.constraintEnforcementMode = 3; 
 GENFIRE.interpolationCutoffDistance =.5;    % interpolation Cut-off distance
@@ -103,10 +103,12 @@ if GENFIRE.ComputeFourierShellCorrelation
     % set the R_free flag back go original
     GENFIRE.calculate_Rfree=calculate_Rfree_ori;
 end
+
+GENFIRE = ClearCalcVariables(GENFIRE);
     
 %run reconstruction
 %GENFIRE = reconstruct(GENFIRE);
-GENFIRE = reconstruct(GENFIRE);
+GENFIRE = reconstruct_dr(GENFIRE);
 final_rec = GENFIRE.reconstruction;
 
 %%

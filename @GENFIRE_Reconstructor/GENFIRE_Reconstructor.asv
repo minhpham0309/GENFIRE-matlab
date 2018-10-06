@@ -227,14 +227,13 @@ classdef GENFIRE_Reconstructor
                     obj = obj.fillInFourierGrid_DFT();
             end
             
-            obj.measuredK_mask = obj.measuredK~=0;
-            %obj.measuredK_mask(obj.measuredK==0) = false;
+            obj.measuredK_mask = true(size(obj.measuredK));
+            obj.measuredK_mask(obj.measuredK==0) = false;
         end
         
         function obj = reset_measuredK_mask(obj)
-            obj.measuredK_mask = obj.measuredK~=0;
-            %obj.measuredK_mask = true(size(obj.measuredK));
-            %obj.measuredK_mask(obj.measuredK==0) = false;
+            obj.measuredK_mask = true(size(obj.measuredK));
+            obj.measuredK_mask(obj.measuredK==0) = false;
         end
         
         
@@ -245,7 +244,8 @@ classdef GENFIRE_Reconstructor
             
             fprintf('GENFIRE: Dividing datasets in half for FSC calculation...\n\n')
             
-            obj.measuredK_mask = obj.measuredK~=0;            
+            obj.measuredK_mask = true(size(obj.measuredK));
+            obj.measuredK_mask(obj.measuredK==0) = false;
             
             TrueInd = find(obj.measuredK_mask==true);
             
@@ -279,8 +279,8 @@ classdef GENFIRE_Reconstructor
         function obj = ClearCalcVariables(obj)
             obj.InputProjections=[];
             obj.InputAngles=[];
-            %obj.measuredK=[];
-            %obj.measuredK_mask=[];
+            obj.measuredK=[];
+            obj.measuredK_mask=[];
             %         obj.Support=[];
             obj.initialObject=[];
             obj.recIFFT=[];
