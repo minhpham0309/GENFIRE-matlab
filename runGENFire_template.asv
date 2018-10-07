@@ -50,12 +50,12 @@ GENFIRE.filename_Results = results_filename;
 
 GENFIRE.numIterations = 100; 
 GENFIRE.pixelSize = .5; 
-GENFIRE.oversamplingRatio = 3;              % ratio = 4
-GENFIRE.griddingMethod = 1;                 % griddingMethod=2 for DFT
+GENFIRE.oversamplingRatio = 4;              % ratio = 4
+GENFIRE.griddingMethod = 2;                 % griddingMethod=2 for DFT
 GENFIRE.allowMultipleGridMatches = 1;
 GENFIRE.constraintEnforcementMode = 3;      % no suppression
 GENFIRE.interpolationCutoffDistance =.5;    % interpolation Cut-off distance
-GENFIRE.dt_type = ;                        % dt
+GENFIRE.dt_type = 1;                        % dt
 GENFIRE.ds = 0.5;                             % ds
 
 GENFIRE.constraintPositivity = 1;
@@ -66,7 +66,7 @@ GENFIRE.percentValuesForRfree = 0.05;
 GENFIRE.numBinsRfree = 35;
 GENFIRE.doCTFcorrection = 0;
 GENFIRE.CTFThrowOutThreshhold = 0;
-GENFIRE.calculate_Rfree = 1;
+GENFIRE.calculate_Rfree = 0;
 GENFIRE.DFT_doGPU = doGPU;
 
 

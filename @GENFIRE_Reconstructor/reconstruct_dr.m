@@ -126,7 +126,7 @@ x_cen = floor(d1/2);
 y_cen = floor(d2/2);
 z_cen = floor(d3/2);
 kernel = (XX-x_cen).^2 + (YY-y_cen).^2 + (ZZ-z_cen).^2;
-kernel = exp(-kernel/500^2);
+kernel = exp(-kernel/600^2);
 kernel = single(kernel);
 clear XX YY ZZ
 
@@ -183,7 +183,8 @@ for iterationNum = 1:numIterations
     
     if obj.errK(iterationNum)<bestErr %if current reconstruction has better error, update best error and best reconstruction
         bestErr = obj.errK(iterationNum);
-        obj.reconstruction = initialObject;
+        obj.reconstruction = fftshift(initialObject);
+        obj.reconstruction = obj.reconstruction(obj.Vol_ind(1,1):obj.Vol_ind(1,2), obj.Vol_ind(2,1):obj.Vol_ind(2,2), obj.Vol_ind(3,1):obj.Vol_ind(3,2));
     end
     
     fprintf('Iteration %d. Error = %d\n',iterationNum, obj.errK(iterationNum));
@@ -208,6 +209,6 @@ reconstructionTime = toc;
 reconstructionTime = round(10*reconstructionTime)./10;
 fprintf('GENFIRE: Reconstruction completed in %.12g seconds.\n\n',reconstructionTime);
 
-obj.reconstruction = My_stripzero(fftshift(obj.reconstruction),[obj.Dim1 obj.Dim2 obj.Dim1]);
+%obj.reconstruction = My_stripzero(fftshift(obj.reconstruction),[obj.Dim1 obj.Dim2 obj.Dim1]);
 
 end

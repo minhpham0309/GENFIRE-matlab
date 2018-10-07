@@ -80,6 +80,7 @@ classdef GENFIRE_Reconstructor
         % dt parameters for new dr method
         dt_type
         ds
+        Vol_ind =  zeros(3,2)
     end
     
     methods
@@ -230,6 +231,7 @@ classdef GENFIRE_Reconstructor
             obj.measuredK = single(obj.measuredK);
             obj.measuredK_mask = obj.measuredK~=0;
             %obj.measuredK_mask(obj.measuredK==0) = false;
+            obj.Vol_ind = My_volumn_index(size(obj.measuredK),[obj.Dim1 obj.Dim2 obj.Dim1]);
         end
         
         function obj = reset_measuredK_mask(obj)
