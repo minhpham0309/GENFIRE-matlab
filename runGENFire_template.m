@@ -2,8 +2,8 @@
 prefixstr = 'NiPt_Mo_181118BA_t2';
 addpath('functions\')
 
-pj_filename              = 'data\vesicle_projections.mat';
-angle_filename           = 'data\vesicle_angles.mat';
+pj_filename              = 'data\small_projections.mat';
+angle_filename           = 'data\small_angles.mat';
 results_filename         = 'data\result.mat';
 doGPU = 0;
 
@@ -53,10 +53,10 @@ GENFIRE.pixelSize = .5;
 GENFIRE.oversamplingRatio = 3;              % ratio = 4
 GENFIRE.griddingMethod = 1;                 % griddingMethod=2 for DFT
 GENFIRE.allowMultipleGridMatches = 1;
-GENFIRE.constraintEnforcementMode = 3; 
+GENFIRE.constraintEnforcementMode = 3;      % no suppression
 GENFIRE.interpolationCutoffDistance =.5;    % interpolation Cut-off distance
 GENFIRE.dt_type = 1;                        % dt
-GENFIRE.ds = 1;                             % ds
+GENFIRE.ds = 0.5;                             % ds
 
 GENFIRE.constraintPositivity = 1;
 GENFIRE.constraintSupport = 1;
@@ -66,7 +66,7 @@ GENFIRE.percentValuesForRfree = 0.05;
 GENFIRE.numBinsRfree = 35;
 GENFIRE.doCTFcorrection = 0;
 GENFIRE.CTFThrowOutThreshhold = 0;
-GENFIRE.calculate_Rfree = 1;
+GENFIRE.calculate_Rfree = 0;
 GENFIRE.DFT_doGPU = doGPU;
 
 

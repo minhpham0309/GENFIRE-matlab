@@ -118,12 +118,22 @@ initialObject = ifftshift(initialObject);
 initialObject = single(initialObject);
 constraintIndicators = single(constraintIndicators);
 clear Q
-
 u = initialObject;
+
+[d1,d2,d3] = size(initialObject);
+[XX,YY,ZZ] = meshgrid(1:d1,1:d2,1:d3);
+x_cen = floor(d1/2);
+y_cen = floor(d2/2);
+z_cen = floor(d3/2);
+R2 = (XX-x_cen).^2 + (YY-y_cen).^2 + (ZZ-z_cen).^2;
+kernel = exp(-R2/500^2);
+kernel = single(kernel);
+
 for iterationNum = 1:numIterations
-    if iterationNum == iterationNumsToChangeCutoff(currentCutoffNum)
+    if iterationNum == iterationNumsToChangeCutoff(currentCutoffNum) && iterationNum<2
         currentCutoffNum = find(iterationNumsToChangeCutoff==iterationNum,1,'last');
-        constraintInd_complex = constraintIndicators>(obj.constraintEnforcementDelayIndicators(currentCutoffNum))&obj.measuredK~=0&obj.measuredK_mask;
+        %constraintInd_complex = (constraintIndicators>obj.constraintEnforcementDelayIndicators(currentCutoffNum)) & obj.measuredK~=0 & obj.measuredK_mask;
+        constraintInd_complex = obj.measuredK~=0 & obj.measuredK_mask;
         %constraintInd_complex_shifted = int32(My_iffshift3_ind(size(paddedSupport),constraintInd_complex));
         %constraintInd_complex_shifted = ifftshift(constraintInd_complex);
         currentCutoffNum = currentCutoffNum+1;
@@ -134,9 +144,9 @@ for iterationNum = 1:numIterations
         case 1
             dt = 0.1;
         case 2
-            dt = 0.1 + 0.3*(1-np.sqrt((numIterations-iterationNum)/numIterations));
+            dt = 0.1 + 0.3*(1-sqrt((numIterations-iterationNum)/numIterations));
     end
-    %ds = 1 - (1 - sqrt((numIterations-iterationNum)/numIterations) );
+    %ds = 0.5 * sqrt((numIterations-iterationNum)/numIterations) ;
     
     
     k = fftn(initialObject);%take FFT of initial object
@@ -161,17 +171,16 @@ for iterationNum = 1:numIterations
                 Rfree_complex_bybin(shellNum, iterationNum) = Rfree_numerator / Rfree_denominator;
                 
             end
-            %Rfree_complex_total(iterationNum) = total_Rfree_error / total_Rfree_error_norm;
+            Rfree_complex_total(iterationNum) = total_Rfree_error / total_Rfree_error_norm;
         end
         figure(1);
-        subplot(1,2,1);plot(mean(obj.Rfree_complex,1));title('Mean R-free Value v.s. Iteration ')
-        %subplot(1,3,2);plot(Rfree_complex_total);
+        %subplot(1,3,1);plot(mean(obj.Rfree_complex,1));title('Mean R-free Value v.s. Iteration ')
+        subplot(1,2,1);plot(Rfree_complex_total);xlim([0,numIterations]); title('Mean R-free Value v.s. Iteration ')
         subplot(1,2,2);plot(Rfree_complex_bybin(:,iterationNum));title('Final R-free Values v.s. Spatial Frequency');
         drawnow();
     end
     
     if obj.errK(iterationNum)<bestErr %if current reconstruction has better error, update best error and best reconstruction
-        %     fprintf('GENFIRE: new best object, iteration %d\n',iterationNum)
         bestErr = obj.errK(iterationNum);
         obj.reconstruction = initialObject;
     end
@@ -188,6 +197,8 @@ for iterationNum = 1:numIterations
     initialObject = real(initialObject);%obtain next object with IFFT
     initialObject = max(0,initialObject);
     initialObject = initialObject.*paddedSupport;
+    F_obj = fftn(initialObject) .* kernel;
+    initialObject = real(ifftn(F_obj));
     
     u = initialObject + ds*(u - u_K);
 end

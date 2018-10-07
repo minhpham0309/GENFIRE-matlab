@@ -109,7 +109,7 @@ initialObject = ifftshift(initialObject);
 for iterationNum = 1:numIterations
     if iterationNum == iterationNumsToChangeCutoff(currentCutoffNum)
         currentCutoffNum = find(iterationNumsToChangeCutoff==iterationNum,1,'last');
-        constraintInd_complex = find(constraintIndicators>(obj.constraintEnforcementDelayIndicators(currentCutoffNum))&obj.measuredK~=0&obj.measuredK_mask);
+        constraintInd_complex = find(constraintIndicators>(obj.constraintEnforcementDelayIndicators(currentCutoffNum)) & obj.measuredK~=0&obj.measuredK_mask);
         constraintInd_complex_shifted = My_iffshift3_ind(size(paddedSupport),constraintInd_complex);        
         currentCutoffNum = currentCutoffNum+1;
         bestErr = 1e30;%reset best error
