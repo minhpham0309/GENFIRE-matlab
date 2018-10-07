@@ -127,13 +127,8 @@ for iterationNum = 1:numIterations
         case 4
             dt = 1 - 1*(1-np.sqrt((numIterations-iterationNum)/numIterations));
     end
+    dt=0.1;
     
-    if enforce_positivity
-        initialObject(initialObject<0) = 0; %enforce positivity
-    end
-    if enforce_support
-        initialObject = initialObject.*paddedSupport;%enforce support
-    end
 
     k = fftn(initialObject);%take FFT of initial object
     %monitor error
@@ -163,11 +158,17 @@ for iterationNum = 1:numIterations
     k(constraintInd_complex_shifted) = dt*k(constraintInd_complex_shifted) + (1-dt)*obj.measuredK(constraintInd_complex);
     u_K = ifftn(k);
 %     u_K = real(ifftn(k));
-    initialObject = (1+dt)*u_K - dt*u;
+    initialObject = 2*u_K - u;
     
 %     initialObject = real(ifftn(k));%obtain next object with IFFT
     initialObject = real(initialObject);%obtain next object with IFFT
-    u = initialObject + dt*(u - u_K);
+    if enforce_positivity
+        initialObject(initialObject<0) = 0; %enforce positivity
+    end
+    if enforce_support
+        initialObject = initialObject.*paddedSupport;%enforce support
+    end    
+    u = initialObject + (u - u_K);
 end
 
 reconstructionTime = toc;

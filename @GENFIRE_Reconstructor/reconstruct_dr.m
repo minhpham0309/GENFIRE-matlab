@@ -28,11 +28,18 @@
 function obj = reconstruct_dr(obj)
 dt_type = obj.dt_type;
 ds =    obj.ds;
+obj.measuredK = ifftshift(obj.measuredK);
+obj.measuredK_mask = ifftshift(obj.measuredK_mask);
+
+numIterations = obj.numIterations;
+enforce_positivity = obj.constraintPositivity;
+enforce_support = obj.constraintSupport;
 
 % paddedSupport = My_paddzero(obj.Support, [obj.n1_oversampled obj.n2_oversampled obj.n1_oversampled]);
-paddedSupport = My_paddzero(obj.Support, size(obj.measuredK));
+paddedSupport = boolean(My_paddzero(obj.Support, size(obj.measuredK)));
 
 Q = make_Kspace_indices(paddedSupport);
+Q=ifftshift(Q);
 resRange = -0.05;%thickness of resolution ring to use for removal of datapoints for Rfree test
 
 constraintIndicators = zeros(size(Q)); %% first reconstruction uses resolution extension/suppression, where lower resolution information is enforced
@@ -44,6 +51,7 @@ constraintIndicators(obj.measuredK~=0 & obj.measuredK_mask) = 1-Q(obj.measuredK~
 
 if obj.calculate_Rfree==1
     spatialFrequencyForRfree = linspace(0,1,obj.numBinsRfree+1);%compute spatial frequency bins
+    Rfree_complex_bybin = zeros(obj.numBinsRfree,numIterations);
     for shellNum = 1:obj.numBinsRfree %loop over each frequency shell
         
         measuredPointInd_complex = find(obj.measuredK~=0&Q>=(spatialFrequencyForRfree(shellNum)+resRange)&Q<spatialFrequencyForRfree(shellNum+1)); %candidate values for Rfree_complex
@@ -59,7 +67,7 @@ if obj.calculate_Rfree==1
             cutoffInd_complex = 1;
         end
         R_freeInd_complex{shellNum} = measuredPointInd_complex(1:cutoffInd_complex);%take complex value for 5% of measured data
-        R_freeInd_shifted_complex{shellNum} = My_iffshift3_ind(size(paddedSupport),R_freeInd_complex{shellNum});
+        %R_freeInd_shifted_complex{shellNum} = My_iffshift3_ind(size(paddedSupport),R_freeInd_complex{shellNum});
         %now create a temporary set of constraints that have this 5% of
         %datapoints removed
         obj.measuredK_mask(R_freeInd_complex{shellNum}) = false;
@@ -78,9 +86,6 @@ else
     initialObject = My_paddzero(obj.InitialObject, [obj.n1_oversampled obj.n2_oversampled obj.n1_oversampled]);
 end
 
-numIterations = obj.numIterations;
-enforce_positivity = obj.constraintPositivity;
-enforce_support = obj.constraintSupport;
 
 % numIterations,initialObject,support,measuredK,constraintIndicators,constraintEnforcementDelayIndicators,
 %
@@ -89,14 +94,15 @@ enforce_support = obj.constraintSupport;
 bestErr = 1e30;%initialize best error
 
 if obj.calculate_Rfree==1
-    obj.Rfree_complex = -1*ones(1,numIterations,'single');%% initialize Rfree_complex curve , -1 is a flag that means undefined
+    obj.Rfree_complex = zeros(1,numIterations,'single');%% initialize Rfree_complex curve , -1 is a flag that means undefined
 end
 obj.errK = zeros(1,numIterations,'single');
 
 %prefetch indices to use for error metric to avoid having to lookup each
 %iteration
-errInd = find(obj.measuredK~=0&obj.measuredK_mask);
-errInd_shifted = My_iffshift3_ind(size(paddedSupport),errInd);
+errInd = obj.measuredK~=0&obj.measuredK_mask;
+%errInd_shifted = int32(My_iffshift3_ind(size(paddedSupport),errInd));
+
 
 %determine how to spread the provided weighting cutoffs over the iterations
 iterationNumsToChangeCutoff = round(linspace(1,numIterations,numel(obj.constraintEnforcementDelayIndicators)));
@@ -106,9 +112,9 @@ currentCutoffNum = 1;
 % do ifftshift and fftshift only at before and after iteration
 % and avoid using ifftshift and fftshift during the iteration to save time
 paddedSupport = ifftshift(paddedSupport);
-paddedSupport = boolean(paddedSupport);
 initialObject = ifftshift(initialObject);
 
+% single precision
 initialObject = single(initialObject);
 constraintIndicators = single(constraintIndicators);
 clear Q
@@ -117,8 +123,9 @@ u = initialObject;
 for iterationNum = 1:numIterations
     if iterationNum == iterationNumsToChangeCutoff(currentCutoffNum)
         currentCutoffNum = find(iterationNumsToChangeCutoff==iterationNum,1,'last');
-        constraintInd_complex = find(constraintIndicators>(obj.constraintEnforcementDelayIndicators(currentCutoffNum))&obj.measuredK~=0&obj.measuredK_mask);
-        constraintInd_complex_shifted = My_iffshift3_ind(size(paddedSupport),constraintInd_complex);
+        constraintInd_complex = constraintIndicators>(obj.constraintEnforcementDelayIndicators(currentCutoffNum))&obj.measuredK~=0&obj.measuredK_mask;
+        %constraintInd_complex_shifted = int32(My_iffshift3_ind(size(paddedSupport),constraintInd_complex));
+        %constraintInd_complex_shifted = ifftshift(constraintInd_complex);
         currentCutoffNum = currentCutoffNum+1;
         bestErr = 1e30;%reset best error
     end
@@ -134,18 +141,33 @@ for iterationNum = 1:numIterations
     
     k = fftn(initialObject);%take FFT of initial object
     %monitor error
-    obj.errK(iterationNum) = sum(abs(abs(k(errInd_shifted))-abs(obj.measuredK(errInd))))./sum(abs(obj.measuredK(errInd)));
+    obj.errK(iterationNum) = sum(abs(abs(k(errInd))-abs(obj.measuredK(errInd))))./sum(abs(obj.measuredK(errInd)));
     
     if obj.calculate_Rfree==1 %if values have been withheld from measuredK for monitoring R_free, check them accordingly
         if ~isempty(R_freeInd_complex)
             %calculate Rfree in each resolution shell
+            total_Rfree_error      = 0;
+            total_Rfree_error_norm = 0;
             for shellNum = 1:numel(R_freeInd_complex)
                 %tmpInd =R_freeInd_complex{shellNum};
-                tmpInd_shifted =R_freeInd_shifted_complex{shellNum};
+                tmpInd_shifted =R_freeInd_complex{shellNum};
                 tmpVals = R_freeVals_complex{shellNum};
                 obj.Rfree_complex(shellNum,iterationNum) = sum(abs(k(tmpInd_shifted)-tmpVals))./sum(abs(tmpVals));
+
+                Rfree_numerator                         = sum(abs(k(tmpInd_shifted)-tmpVals));
+                Rfree_denominator                       = sum(abs(tmpVals));
+                total_Rfree_error                       = total_Rfree_error + Rfree_numerator;
+                total_Rfree_error_norm                  = total_Rfree_error_norm + Rfree_denominator;
+                Rfree_complex_bybin(shellNum, iterationNum) = Rfree_numerator / Rfree_denominator;
+                
             end
+            %Rfree_complex_total(iterationNum) = total_Rfree_error / total_Rfree_error_norm;
         end
+        figure(1);
+        subplot(1,2,1);plot(mean(obj.Rfree_complex,1));title('Mean R-free Value v.s. Iteration ')
+        %subplot(1,3,2);plot(Rfree_complex_total);
+        subplot(1,2,2);plot(Rfree_complex_bybin(:,iterationNum));title('Final R-free Values v.s. Spatial Frequency');
+        drawnow();
     end
     
     if obj.errK(iterationNum)<bestErr %if current reconstruction has better error, update best error and best reconstruction
@@ -157,7 +179,7 @@ for iterationNum = 1:numIterations
     fprintf('Iteration %d. Error = %d\n',iterationNum, obj.errK(iterationNum));
     %enforce Fourier constraint
     %k(constraintInd_complex_shifted) = obj.measuredK(constraintInd_complex);
-    k(constraintInd_complex_shifted) = dt*k(constraintInd_complex_shifted) + (1-dt)*obj.measuredK(constraintInd_complex);
+    k(constraintInd_complex) = dt*k(constraintInd_complex) + (1-dt)*obj.measuredK(constraintInd_complex);
     u_K = ifftn(k);
     %u_K = real(ifftn(k));
     initialObject = (1+ds)*u_K - ds*u;

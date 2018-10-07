@@ -66,7 +66,7 @@ GENFIRE.percentValuesForRfree = 0.05;
 GENFIRE.numBinsRfree = 35;
 GENFIRE.doCTFcorrection = 0;
 GENFIRE.CTFThrowOutThreshhold = 0;
-GENFIRE.calculate_Rfree = 0;
+GENFIRE.calculate_Rfree = 1;
 GENFIRE.DFT_doGPU = doGPU;
 
 
