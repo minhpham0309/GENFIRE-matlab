@@ -227,7 +227,7 @@ classdef GENFIRE_Reconstructor
                     obj = obj.fillInFourierGrid_DFT();
             end
             %class(obj.measuredK)
-            %obj.measuredK = single(obj.measuredK);
+            obj.measuredK = single(obj.measuredK);
             obj.measuredK_mask = obj.measuredK~=0;
             %obj.measuredK_mask(obj.measuredK==0) = false;
         end
