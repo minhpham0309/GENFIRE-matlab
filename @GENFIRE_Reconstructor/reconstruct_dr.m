@@ -125,9 +125,10 @@ u = initialObject;
 x_cen = floor(d1/2);
 y_cen = floor(d2/2);
 z_cen = floor(d3/2);
-R2 = (XX-x_cen).^2 + (YY-y_cen).^2 + (ZZ-z_cen).^2;
-kernel = exp(-R2/500^2);
+kernel = (XX-x_cen).^2 + (YY-y_cen).^2 + (ZZ-z_cen).^2;
+kernel = exp(-kernel/500^2);
 kernel = single(kernel);
+clear XX YY ZZ
 
 for iterationNum = 1:numIterations
     if iterationNum == iterationNumsToChangeCutoff(currentCutoffNum) && iterationNum<2
