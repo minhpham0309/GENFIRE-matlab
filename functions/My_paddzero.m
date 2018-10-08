@@ -26,7 +26,7 @@ function PadVol = My_paddzero(Vol,paddedsize)
     elseif sum(size(Vol)>paddedsize) > 0
         fprintf(1,'paddedsize should be equal to or larger than original volume in all dimensions!\n');
     else
-        PadVol = zeros(paddedsize);
+        PadVol = zeros(paddedsize,'single');
         currevalstr = 'PadVol(';
         for i=1:length(size(Vol))
             if mod(size(Vol,i),2) == 0

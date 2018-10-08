@@ -36,7 +36,7 @@ enforce_positivity = obj.constraintPositivity;
 enforce_support = obj.constraintSupport;
 
 % paddedSupport = My_paddzero(obj.Support, [obj.n1_oversampled obj.n2_oversampled obj.n1_oversampled]);
-paddedSupport = boolean(My_paddzero(obj.Support, size(obj.measuredK)));
+paddedSupport = My_paddzero(obj.Support, size(obj.measuredK)) ~=0 ;
 
 Q = make_Kspace_indices(paddedSupport);
 Q=ifftshift(Q);
@@ -81,10 +81,11 @@ fprintf('GENFIRE Douglas Rachford: Reconstructing... \n\n');
 tic;
 
 if isempty(obj.initialObject)
-    initialObject = zeros(size(paddedSupport));
+    initialObject = zeros(size(paddedSupport),'single');
 else
     initialObject = My_paddzero(obj.InitialObject, [obj.n1_oversampled obj.n2_oversampled obj.n1_oversampled]);
 end
+class(initialObject)
 
 
 % numIterations,initialObject,support,measuredK,constraintIndicators,constraintEnforcementDelayIndicators,
@@ -115,19 +116,20 @@ paddedSupport = ifftshift(paddedSupport);
 initialObject = ifftshift(initialObject);
 
 % single precision
-initialObject = single(initialObject);
+%initialObject = single(initialObject);
 constraintIndicators = single(constraintIndicators);
 clear Q
 u = initialObject;
 
 [d1,d2,d3] = size(initialObject);
+d1 = single(d1); d2 = single(d2); d3 = single(d3);
 [XX,YY,ZZ] = meshgrid(1:d1,1:d2,1:d3);
 x_cen = floor(d1/2);
 y_cen = floor(d2/2);
 z_cen = floor(d3/2);
 kernel = (XX-x_cen).^2 + (YY-y_cen).^2 + (ZZ-z_cen).^2;
 kernel = exp(-kernel/600^2);
-kernel = single(kernel);
+class(kernel);
 clear XX YY ZZ
 
 for iterationNum = 1:numIterations
@@ -199,8 +201,7 @@ for iterationNum = 1:numIterations
     initialObject = real(initialObject);%obtain next object with IFFT
     initialObject = max(0,initialObject);
     initialObject = initialObject.*paddedSupport;
-    F_obj = fftn(initialObject) .* kernel;
-    initialObject = real(ifftn(F_obj));
+    F_obj = fftn(initialObject) .* kernel; initialObject = real(ifftn(F_obj));
     
     u = initialObject + ds*(u - u_K);
 end

@@ -115,11 +115,11 @@ end
 
 % initiate Fourier space indices
 if obj.DFT_CentroSymmetricity
-    k1 = single((-1*floor(n1/2):1:0)) ;
-    n_k1 = single(floor(n1/2));
+    k1 = int32((-1*floor(n1/2):1:0)) ;
+    n_k1 = int32(floor(n1/2));
     
-    k2 = single((-1*floor(n2/2):1:floor(n2/2))) ;
-    k3 = single((-1*floor(n1/2):1:floor(n1/2))) ;
+    k2 = int32((-1*floor(n2/2):1:floor(n2/2))) ;
+    k3 = int32((-1*floor(n1/2):1:floor(n1/2))) ;
     
 else
     k1 = single((-1*ceil((n1-1)/2):1:floor((n1-1)/2)) / n1);
@@ -140,8 +140,8 @@ Numpt = zeros(size(K1),'single'); % array to store how many points found per Fou
 invSumTotWeight = zeros(size(K1),'single'); % array to store sum of weights of Fourier point
 
 % initiate Fourier space indices
-k1_ori = single(-1*ceil((n1_ori-1)/2):1:floor((n1_ori-1)/2)) ;
-k2_ori = single(-1*ceil((n2_ori-1)/2):1:floor((n2_ori-1)/2)) ;
+k1_ori = int32(-1*ceil((n1_ori-1)/2):1:floor((n1_ori-1)/2)) ;
+k2_ori = int32(-1*ceil((n2_ori-1)/2):1:floor((n2_ori-1)/2)) ;
 
 [K20, K10] = meshgrid(k2_ori,k1_ori);
 

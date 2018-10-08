@@ -118,10 +118,10 @@ classdef GENFIRE_Reconstructor
             
             if ~isempty(obj.filename_Support)
                 if FileExist(obj.filename_Support)
-                    obj.Support = boolean(importdata(obj.filename_Support));
+                    obj.Support = importdata(obj.filename_Support) ~=0 ;
                 else
                     fprintf('GENFIRE: Support file does not exist!Making a support based on Projections.\n');
-                    obj.Support = boolean(ones(size(obj.InputProjections,1),size(obj.InputProjections,2),size(obj.InputProjections,1)));
+                    obj.Support = ones(size(obj.InputProjections,1),size(obj.InputProjections,2),size(obj.InputProjections,1)) ~=0 ;
                 end
             end
             
@@ -176,7 +176,7 @@ classdef GENFIRE_Reconstructor
             
             % set support if support is not given
             if isempty(obj.Support)
-                obj.Support = boolean(ones(obj.Dim1, obj.Dim2, obj.Dim1));
+                obj.Support = ones(obj.Dim1, obj.Dim2, obj.Dim1) ~= 0;
             end
             
             % check if particle window size matches with support

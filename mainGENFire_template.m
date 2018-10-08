@@ -1,9 +1,15 @@
 %% run refinement
 prefixstr = 'NiPt_Mo_181118BA_t2';
-addpath('functions\')
+addpath('functions')
+%/u/project/miao/minhrose/tomography/GENFIRE_matlab/
+% absolute path on hoffman2
 
-pj_filename              = 'data\small_projections.mat';
-angle_filename           = 'data\small_angles.mat';
+pj_filename              = 'data/vesicle_projections.mat';
+angle_filename           = 'data/vesicle_angles.mat';
+
+%pj_filename              = load('data/NiPt_Mo_FS_171118_t2_Projs_hori_TrAnRlnd.mat');
+%angle_filename           = 'data\ref_angles_NiPt_Mo_FS_171118_t2.mat';
+
 results_filename         = 'data\result.mat';
 doGPU = 0;
 
@@ -51,7 +57,7 @@ GENFIRE.filename_Results = results_filename;
 GENFIRE.numIterations = 100; 
 GENFIRE.pixelSize = .5; 
 GENFIRE.oversamplingRatio = 3;              % ratio = 4
-GENFIRE.griddingMethod = 1;                 % griddingMethod=2 for DFT
+GENFIRE.griddingMethod = 2;                 % griddingMethod=2 for DFT
 GENFIRE.allowMultipleGridMatches = 1;
 GENFIRE.constraintEnforcementMode = 3;      % no suppression
 GENFIRE.interpolationCutoffDistance =.5;    % interpolation Cut-off distance
@@ -121,6 +127,6 @@ save('Ni_DR.mat','final_rec');
 load('data\Up_NiPt_1118t2_FS.mat')
 %%
 %my_rec = tom_mrcread('results_pt_DR_07.mrc');
-[SumX_1118t2_dr_dt01,SumY_1118t2_dr_dt01,SumZ_1118t2_dr_dt01,ESTvol_dr_dt01,peakX_1118t2_dr_dt01,peakY_1118t2_dr_dt01,peakZ_1118t2_dr_dt01,~] = Rot_FinalVol(final_rec,Up);
+[SumX_1118t2_dr_dt01,SumY_1118t2_dr_dt01,SumZ_1118t2_dr_dt01,ESTvol_dr_dt01,peakX_1118t2_dr_dt01,peakY_1118t2_dr_dt01,peakZ_1118t2_dr_dt01,~] = Rot_FinalVol(reconstruction,Up);
 figure;img(ESTvol_dr_dt01)
 
