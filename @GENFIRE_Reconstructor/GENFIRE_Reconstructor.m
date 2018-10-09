@@ -13,6 +13,7 @@ classdef GENFIRE_Reconstructor
         
         % internal variables to be kept after run
         reconstruction
+        final_rec
         errK
         Dim1  % projection size1
         Dim2  % projection size2
@@ -81,6 +82,7 @@ classdef GENFIRE_Reconstructor
         dt_type
         ds
         Vol_ind =  zeros(3,2)
+        smooth = 0;
     end
     
     methods

@@ -85,7 +85,6 @@ if isempty(obj.initialObject)
 else
     initialObject = My_paddzero(obj.InitialObject, [obj.n1_oversampled obj.n2_oversampled obj.n1_oversampled]);
 end
-class(initialObject)
 
 
 % numIterations,initialObject,support,measuredK,constraintIndicators,constraintEnforcementDelayIndicators,
@@ -116,21 +115,24 @@ paddedSupport = ifftshift(paddedSupport);
 initialObject = ifftshift(initialObject);
 
 % single precision
-%initialObject = single(initialObject);
+initialObject = single(initialObject);
 constraintIndicators = single(constraintIndicators);
 clear Q
 u = initialObject;
 
-[d1,d2,d3] = size(initialObject);
-d1 = single(d1); d2 = single(d2); d3 = single(d3);
-[XX,YY,ZZ] = meshgrid(1:d1,1:d2,1:d3);
-x_cen = floor(d1/2);
-y_cen = floor(d2/2);
-z_cen = floor(d3/2);
-kernel = (XX-x_cen).^2 + (YY-y_cen).^2 + (ZZ-z_cen).^2;
-kernel = exp(-kernel/600^2);
-class(kernel);
-clear XX YY ZZ
+smooth = obj.smooth;
+if smooth
+    [d1,d2,d3] = size(initialObject);
+    d1 = single(d1); d2 = single(d2); d3 = single(d3);
+    [XX,YY,ZZ] = meshgrid(1:d1,1:d2,1:d3);
+    x_cen = floor(d1/2);
+    y_cen = floor(d2/2);
+    z_cen = floor(d3/2);
+    kernel = (XX-x_cen).^2 + (YY-y_cen).^2 + (ZZ-z_cen).^2;
+    sigma = 1/obj.smooth;
+    kernel = exp(-kernel/sigma^2);
+    clear XX YY ZZ
+end
 
 for iterationNum = 1:numIterations
     if iterationNum == iterationNumsToChangeCutoff(currentCutoffNum) && iterationNum<2
@@ -144,6 +146,8 @@ for iterationNum = 1:numIterations
     end
     
     switch dt_type
+        case 0
+            dt = 0;
         case 1
             dt = 0.1;
         case 2
@@ -201,7 +205,9 @@ for iterationNum = 1:numIterations
     initialObject = real(initialObject);%obtain next object with IFFT
     initialObject = max(0,initialObject);
     initialObject = initialObject.*paddedSupport;
-    F_obj = fftn(initialObject) .* kernel; initialObject = real(ifftn(F_obj));
+    if smooth 
+        F_obj = fftn(initialObject) .* kernel; initialObject = real(ifftn(F_obj));
+    end
     
     u = initialObject + ds*(u - u_K);
 end
@@ -211,5 +217,6 @@ reconstructionTime = round(10*reconstructionTime)./10;
 fprintf('GENFIRE: Reconstruction completed in %.12g seconds.\n\n',reconstructionTime);
 
 %obj.reconstruction = My_stripzero(fftshift(obj.reconstruction),[obj.Dim1 obj.Dim2 obj.Dim1]);
-
+obj.final_rec = fftshift(initialObject);
+obj.final_rec = obj.final_rec(obj.Vol_ind(1,1):obj.Vol_ind(1,2), obj.Vol_ind(2,1):obj.Vol_ind(2,2), obj.Vol_ind(3,1):obj.Vol_ind(3,2));
 end

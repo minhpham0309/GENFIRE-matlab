@@ -4,13 +4,13 @@ addpath('functions')
 %/u/project/miao/minhrose/tomography/GENFIRE_matlab/
 % absolute path on hoffman2
 
-pj_filename              = 'data/vesicle_projections.mat';
-angle_filename           = 'data/vesicle_angles.mat';
+pj_filename              = 'data/small_projections.mat';
+angle_filename           = 'data/small_angles.mat';
 
 %pj_filename              = load('data/NiPt_Mo_FS_171118_t2_Projs_hori_TrAnRlnd.mat');
 %angle_filename           = 'data\ref_angles_NiPt_Mo_FS_171118_t2.mat';
 
-results_filename         = 'data\result.mat';
+results_filename         = 'data/result.mat';
 doGPU = 0;
 
 %%
@@ -57,12 +57,13 @@ GENFIRE.filename_Results = results_filename;
 GENFIRE.numIterations = 100; 
 GENFIRE.pixelSize = .5; 
 GENFIRE.oversamplingRatio = 3;              % ratio = 4
-GENFIRE.griddingMethod = 2;                 % griddingMethod=2 for DFT
+GENFIRE.griddingMethod = 1;                 % griddingMethod=2 for DFT
 GENFIRE.allowMultipleGridMatches = 1;
 GENFIRE.constraintEnforcementMode = 3;      % no suppression
 GENFIRE.interpolationCutoffDistance =.5;    % interpolation Cut-off distance
 GENFIRE.dt_type = 1;                        % dt
 GENFIRE.ds = 0.5;                             % ds
+GENFIRE.smooth = 1/600;
 
 GENFIRE.constraintPositivity = 1;
 GENFIRE.constraintSupport = 1;
@@ -115,9 +116,15 @@ GENFIRE = ClearCalcVariables(GENFIRE);
 %run reconstruction
 %GENFIRE = reconstruct(GENFIRE);
 GENFIRE = reconstruct_dr(GENFIRE);
-final_rec = GENFIRE.reconstruction;
+reconstruction = GENFIRE.reconstruction;
+%final_rec = GENFIRE.final_rec;
 
 %%
+figure;img(permute(reconstruction,[2,3,1]));
+figure;img(permute(reconstruction,[1,3,2]));
+figure;img(reconstruction);
+%%
+final_rec = GENFIRE.final_rec;
 figure;img(permute(final_rec,[2,3,1]));
 figure;img(permute(final_rec,[1,3,2]));
 figure;img(final_rec);
