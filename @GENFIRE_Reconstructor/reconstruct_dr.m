@@ -138,7 +138,7 @@ for iterationNum = 1:numIterations
     if iterationNum == iterationNumsToChangeCutoff(currentCutoffNum) && iterationNum<2
         currentCutoffNum = find(iterationNumsToChangeCutoff==iterationNum,1,'last');
         %constraintInd_complex = (constraintIndicators>obj.constraintEnforcementDelayIndicators(currentCutoffNum)) & obj.measuredK~=0 & obj.measuredK_mask;
-        constraintInd_complex = obj.measuredK~=0 & obj.measuredK_mask;
+        %constraintInd_complex = obj.measuredK~=0 & obj.measuredK_mask;
         %constraintInd_complex_shifted = int32(My_iffshift3_ind(size(paddedSupport),constraintInd_complex));
         %constraintInd_complex_shifted = ifftshift(constraintInd_complex);
         currentCutoffNum = currentCutoffNum+1;
@@ -196,7 +196,8 @@ for iterationNum = 1:numIterations
     fprintf('Iteration %d. Error = %d\n',iterationNum, obj.errK(iterationNum));
     %enforce Fourier constraint
     %k(constraintInd_complex_shifted) = obj.measuredK(constraintInd_complex);
-    k(constraintInd_complex) = dt*k(constraintInd_complex) + (1-dt)*obj.measuredK(constraintInd_complex);
+    %k(constraintInd_complex) = dt*k(constraintInd_complex) + (1-dt)*obj.measuredK(constraintInd_complex);
+    k(errInd) = dt*k(errInd) + (1-dt)*obj.measuredK(errInd);
     u_K = ifftn(k);
     %u_K = real(ifftn(k));
     initialObject = (1+ds)*u_K - ds*u;

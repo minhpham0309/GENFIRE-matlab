@@ -51,9 +51,9 @@ halfWindowSize = particleWindowSize/2;
 
 %initialize array to hold measured data
 if mod(particleWindowSize,2)==0
-    kMeasured = zeros(particleWindowSize*oversamplingRatio,particleWindowSize*oversamplingRatio,size(projections,3));
+    kMeasured = zeros(floor(particleWindowSize*oversamplingRatio),floor(particleWindowSize*oversamplingRatio),size(projections,3),'single');
 else
-    kMeasured = zeros(1 + (particleWindowSize-1)*oversamplingRatio,1 + (particleWindowSize-1)*oversamplingRatio,size(projections,3));
+    kMeasured = zeros(1 + floor((particleWindowSize-1)*oversamplingRatio),1 + floor((particleWindowSize-1)*oversamplingRatio),size(projections,3),'single');
 end
 
 tic %start clock
