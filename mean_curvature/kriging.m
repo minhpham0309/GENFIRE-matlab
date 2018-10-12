@@ -1,0 +1,99 @@
+function [elevation,gridX,gridY] = kriging(x,y,z,gridX,gridY,range,sill)
+% KRIGING  Ordinary Kriging Interpolation
+%
+%   3D interpolation of scattered height data against x and y data.
+%
+%   USES:
+%   [elevation]                 = KRIGING(PointsX,PointsY,PointsElev)
+%   [elevation]                 = KRIGING(PointsX,PointsY,PointsElev,Range,Sill)
+%   [elevation,gridX,gridY]     = KRIGING(PointsX,PointsY,PointsElev)
+%   [elevation,gridX,gridY]     = KRIGING(PointsX,PointsY,PointsElev,Range,Sill)
+%
+%   The input variables range and sill are optional; 'Default' values will be
+%   used if not supplied. The 'default' values are not correct but give a
+%   good indiciation of your kriging. To determine the right values use
+%   variography.
+%
+%   See also SURF, MESHGRID.
+%
+%   Author: J.W. Buist
+%   Data:   15-5-2016
+
+%% Checking input
+if nargin < 3
+    error('Error. Input at least PointsX, PointsY and PointsElev')
+end
+
+if ~exist('range','var')
+    range = 26440.092;
+end
+
+if ~exist('sill','var')
+    sill = 62583.893;
+end
+
+%% Calculating trend
+L = length(x);
+O = ones(L,1);
+C = [x y O]\z;
+
+PointsElev = z - (C(1).*x + C(2).*y +C(3));
+S = size(PointsElev);
+if S(1) > S(2)
+    PointsElev = PointsElev.';
+end
+
+%% Kriging Interpolation
+% Building grid
+%gridX = linspace(min(x),max(x),L); gridX = single(gridX);
+%gridY = linspace(min(y),max(y),L); gridY = single(gridY);
+
+% Building reduncy matrix
+ReduMatrix = zeros(L,L,'single');
+for i = 1:L
+    for j = 1:L
+        Distance = sqrt((x(i) - x(j))^2 + (y(i) - y(j))^2);
+        %
+        if Distance > range
+            ReduMatrix(i, j) = sill;
+        else
+            ReduMatrix(i, j) = sill*((3*Distance./(2*range)) -1/2*(Distance ./range).^3);
+        end
+        %}
+    end
+end
+disp('done');
+
+% Kriging Interpolation
+[L1,L2] = size(gridX);
+xCords = zeros(L1,L2,'single');
+yCords = zeros(L1,L2,'single');
+elevation = zeros(L1,L2,'single');
+hw = waitbar(0,'Kriging...','CreateCancelBtn', {@(H,~) delete( findobj( get(H,'Parent'), '-Depth', 1, 'Tag', 'TMWWaitbar'))});
+for gridXcor = 1:L1
+    try
+        waitbar(gridXcor/L1,hw)
+    catch
+        error('Kriging cancelled by user')
+    end
+    
+    for gridYcor = 1:L2
+        ProxVector = zeros(L, 1, 'single');
+        for a = 1:L
+            Distance = sqrt((x(a) - gridX(gridXcor))^2 + (y(a) - gridY(gridYcor))^2);
+            if Distance > range
+                ProxVector(a) = sill;
+            else
+                ProxVector(a) = sill*((3*Distance./(2*range))-1/2*(Distance ./range).^3);
+            end
+        end
+        
+        Weights = ReduMatrix \ ProxVector;
+        XYElev = PointsElev * Weights;
+        XYElev = XYElev + ((C(1) * gridX(gridXcor)) + (C(2) * gridY(gridYcor)) + C(3) );
+        xCords(gridXcor,gridYcor) = gridX(gridXcor);
+        yCords(gridXcor,gridYcor) = gridY(gridYcor);
+        elevation(gridXcor,gridYcor) = XYElev;
+    end
+end
+delete(hw)
