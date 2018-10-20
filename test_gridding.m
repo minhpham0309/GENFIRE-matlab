@@ -1,10 +1,11 @@
-addpath('gridding')
+%addpath('gridding')
 addpath('nufftall-1.33')
 img1 = imread('data\lena_128.jpg');
 img1 = double(img1); img1 = img1/max(img1(:));
 
 img2 = padarray(img1,[192,192],0,'both');
-supp = img2~=0;
+supp = padarray(ones(size(img1)),[192,192],0,'both');
+supp = logical(supp);
 F = fftshift(fft2(ifftshift(img2)));
 FF = F(:);
 
@@ -39,20 +40,37 @@ YY_sample = mod(YY_sample,512)-256;
 %%
 xj=[XX;XX_sample]; xj=(xj/max(abs(xj)))*pi;
 yj=[YY;YY_sample]; yj=(yj/max(abs(yj)))*pi;
-fk = [FF;F_sample(:)];
+[min(xj),max(xj)]
+FF = (F);
+fk = [FF(:);F_sample(:)];
 nj = length(xj);
 
 for k=1:1
 u = nufft2d1(nj,yj,xj,fk,1,1e-6,512,512);
-%figure; img(u)
-u = (real(u)).*ifftshift(supp);
+u2 = ifftn(ifftshift(FF));
+u = u;
+[max(u(:)), max(u2(:))]
+u = max(0,real(u)).*((supp))/pi^2;
+%max(u(:))
+%u = u/512^2;
+figure; img(u)
+%u = fftshift(u);
 %u(u<0.1&fftshift(supp)) = max(u(:));
 fk = nufft2d2(nj,yj,xj,-1,1e-6,512,512,u);
+f1 = fk(1:512^2);
+f2 = fk(512^2+1:end);
+z2 = fftshift(fft2(ifftshift(u)));
+[max(z2(:)),max(f1),max(FF(:))]
+[max(f2),max(F_sample)]
+%fk = fk/512^2*nj;
 fk(512^2+1:end)=F_sample;
 end
-u=fftshift(u);
+%u = fftshift(u);
+%u = u(193:320,193:320);
 
-figure; img(u,'colormap','gray')
+figure; img(u,'colormap','gray'); %caxis([0.6 1.9253])
+figure; img(log(reshape(fk(1:512^2),512,512)));colorbar
+figure; img(log(F));colorbar
 [min(u(:)),max(u(:))]
 
 %% interpolation by common methods
@@ -99,19 +117,19 @@ sigma = 800;
 kernel = exp(-kernel/sigma^2);
 
 for k=1:200
-    z = fftshift(fftn(u));
-    err = sum(abs(abs(z(mask)) - abs(F_grid(mask))))/sum(abs(F_grid(mask)));
+    z = (fftn(u));
+    err = sum(abs(abs(z(measuredK_mask)) - abs(measuredK(measuredK_mask))))/sum(abs(measuredK(measuredK_mask)));
     if mod(k,10)==0, fprintf('%d.error = %f\n',k,err);end
-    z(mask) = F_grid(mask) ;%+ 0.5*z(mask);
-    u_k = ifftn(ifftshift(z));
-    obj = 1.3*u_k - .3*u;
+    z(measuredK_mask) = measuredK(measuredK_mask) ;%+ 0.5*z(mask);
+    u_k = ifftn((z));
+    obj = 1*u_k - .0*u;
     obj = max(0,real(obj)).*supp_ifft;
     %F_obj = fftshift(fftn(obj)) .* kernel; obj = real(ifftn(ifftshift(F_obj)));
     
     u = obj + .3*(u - u_k);
 end
 obj = fftshift(obj);
-figure; img(obj,'colormap','gray'); title('cubic');
+figure; img(obj,'colormap','gray'); title('linear');
 %%
 F_grid = reshape(F_grid,[512,512]);
 F_grid(isnan(F_grid))=0;
